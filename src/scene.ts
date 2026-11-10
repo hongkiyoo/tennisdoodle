@@ -7,8 +7,15 @@ export type PlayerId = 'A1' | 'A2' | 'B1' | 'B2';
 export type PieceId = PlayerId | 'ball';
 
 export interface Pt { x: number; y: number }
-export interface Player extends Pt { id: PlayerId; team: Team }
-export interface Scene { mode: Mode; players: Player[]; ball: Pt }
+export interface Player extends Pt { id: PlayerId; team: Team; name?: string }
+
+/** A drawn arrow. `pts` is flat: [x0, y0, x1, y1, ...] in metres. */
+export type StrokeKind = 'move' | 'shot';
+export interface Stroke { kind: StrokeKind; pts: number[] }
+
+export interface Scene { mode: Mode; players: Player[]; ball: Pt; strokes?: Stroke[] }
+
+export const NAME_MAX = 4;
 
 export interface Preset {
   key: string;
@@ -85,6 +92,21 @@ export function isScene(v: unknown): v is Scene {
   if (s.mode !== 'singles' && s.mode !== 'doubles') return false;
   if (!s.ball || !finite(s.ball.x) || !finite(s.ball.y)) return false;
   if (!Array.isArray(s.players) || s.players.length !== (s.mode === 'doubles' ? 4 : 2)) return false;
-  return s.players.every(p =>
-    p && ['A1', 'A2', 'B1', 'B2'].includes(p.id) && (p.team === 'A' || p.team === 'B') && finite(p.x) && finite(p.y));
+  const playersOk = s.players.every(p =>
+    p && ['A1', 'A2', 'B1', 'B2'].includes(p.id) && (p.team === 'A' || p.team === 'B') && finite(p.x) && finite(p.y)
+    && (p.name === undefined || (typeof p.name === 'string' && p.name.length <= NAME_MAX)));
+  if (!playersOk) return false;
+  if (s.strokes === undefined) return true;
+  return Array.isArray(s.strokes) && s.strokes.length <= 200 && s.strokes.every(k =>
+    k && (k.kind === 'move' || k.kind === 'shot') && Array.isArray(k.pts)
+    && k.pts.length >= 4 && k.pts.length % 2 === 0 && k.pts.length <= 2000 && k.pts.every(finite));
+}
+
+/** Keeps player names when switching formation or mode. */
+export function withNames(next: Scene, from: Scene): Scene {
+  for (const p of next.players) {
+    const name = from.players.find(q => q.id === p.id)?.name;
+    if (name) p.name = name;
+  }
+  return next;
 }

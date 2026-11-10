@@ -1,4 +1,4 @@
-import type { Mode, Player, Pt } from './scene';
+import type { Mode, Player, Pt, Scene, Stroke } from './scene';
 
 // ITF court dimensions in metres (half-lengths from the centre of the net).
 export const COURT = {
@@ -11,6 +11,13 @@ export const COURT = {
 } as const;
 
 const { halfLength: L, halfDoubles: DW, halfSingles: SW, service: SV, post: P, line: LW } = COURT;
+
+// Margins around the court so players standing behind the baseline stay on screen.
+export const HALF_W = DW + 0.7;
+export const HALF_H = L + 1.2;
+export const MINI_VIEWBOX = `${-HALF_W} ${-HALF_H} ${2 * HALF_W} ${2 * HALF_H}`;
+
+const esc = (s: string) => s.replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
 
 export function courtMarkup(mode: Mode): string {
   const dim = mode === 'singles'
@@ -39,12 +46,14 @@ export function courtMarkup(mode: Mode): string {
 
 /** `hit` adds an invisible larger circle so the touch target is at least ~44pt. */
 export function playerMarkup(p: Player, hit: boolean): string {
+  const label = p.name || p.id;
+  const size = label.length <= 2 ? 0.42 : label.length === 3 ? 0.33 : 0.27;
   return `<g class="piece team-${p.team}" data-id="${p.id}" transform="translate(${p.x} ${p.y})">
     ${hit ? '<circle class="hit" r="0.95"/>' : ''}
     <g class="body">
       <circle class="shadow" cx="0.07" cy="0.12" r="0.5"/>
       <circle class="disc" r="0.5"/>
-      <text>${p.id}</text>
+      <text style="font-size:${size}px">${esc(label)}</text>
     </g>
   </g>`;
 }
@@ -58,4 +67,37 @@ export function ballMarkup(b: Pt, hit: boolean): string {
       <path class="seam" d="M-0.15,-0.15 Q0,0 -0.15,0.15 M0.15,-0.15 Q0,0 0.15,0.15"/>
     </g>
   </g>`;
+}
+
+/** Smooth path through the points plus a filled arrowhead at the end. */
+export function strokeMarkup(s: Stroke): string {
+  const p = s.pts, n = p.length;
+  if (n < 4) return '';
+  let d = `M${p[0]} ${p[1]}`;
+  for (let i = 2; i < n - 2; i += 2) {
+    d += ` Q${p[i]} ${p[i + 1]} ${(p[i] + p[i + 2]) / 2} ${(p[i + 1] + p[i + 3]) / 2}`;
+  }
+  d += ` L${p[n - 2]} ${p[n - 1]}`;
+
+  // Direction of the arrowhead: from a point about 0.6 m back along the stroke.
+  const ex = p[n - 2], ey = p[n - 1];
+  let bx = p[0], by = p[1];
+  for (let i = n - 4; i >= 0; i -= 2) {
+    bx = p[i]; by = p[i + 1];
+    if (Math.hypot(ex - bx, ey - by) >= 0.6) break;
+  }
+  const a = Math.atan2(ey - by, ex - bx), len = 0.6, wing = 0.45;
+  const lx = ex - len * Math.cos(a - wing), ly = ey - len * Math.sin(a - wing);
+  const rx = ex - len * Math.cos(a + wing), ry = ey - len * Math.sin(a + wing);
+  const head = `${ex.toFixed(2)},${ey.toFixed(2)} ${lx.toFixed(2)},${ly.toFixed(2)} ${rx.toFixed(2)},${ry.toFixed(2)}`;
+  return `<g class="stroke ${s.kind}">
+    <path class="under" d="${d}"/><path class="line" d="${d}"/><polygon points="${head}"/>
+  </g>`;
+}
+
+/** Small static preview of a whole scene (formation cards, saved list). */
+export function miniSceneSvg(s: Scene): string {
+  return `<svg viewBox="${MINI_VIEWBOX}" aria-hidden="true">${courtMarkup(s.mode)}
+    ${(s.strokes ?? []).map(strokeMarkup).join('')}
+    ${s.players.map(p => playerMarkup(p, false)).join('')}${ballMarkup(s.ball, false)}</svg>`;
 }
