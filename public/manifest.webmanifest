@@ -1,0 +1,17 @@
+{
+  "name": "TennisDoodle",
+  "short_name": "TennisDoodle",
+  "description": "파트너와 함께 테니스 작전을 그려 보는 코트 보드",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#3d6b4e",
+  "theme_color": "#3d6b4e",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

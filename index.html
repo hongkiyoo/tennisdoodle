@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>TennisDoodle</title>
+  <meta name="theme-color" content="#3d6b4e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="TennisDoodle">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+</head>
+<body>
+  <main id="app">
+    <svg id="board" aria-label="테니스 코트. 선수와 공을 끌어서 옮길 수 있습니다">
+      <g id="court"></g>
+      <g id="pieces"></g>
+    </svg>
+    <div id="safe-top" aria-hidden="true"></div>
+
+    <nav class="toolbar" aria-label="도구">
+      <div class="seg" role="group" aria-label="경기 방식">
+        <button id="mode-singles" type="button">단식</button>
+        <button id="mode-doubles" type="button">복식</button>
+      </div>
+      <div class="tools">
+        <button id="btn-presets" class="tool" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M5 12h14M12 7v10"/></svg>
+          <span>포메이션</span>
+        </button>
+        <button id="btn-undo" class="tool" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+          <span>되돌리기</span>
+        </button>
+      </div>
+    </nav>
+
+    <div id="sheet" class="sheet" hidden>
+      <div class="sheet-backdrop" data-close></div>
+      <section class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+        <header class="sheet-head">
+          <h2 id="sheet-title">포메이션</h2>
+          <button class="sheet-close" type="button" data-close aria-label="닫기">닫기</button>
+        </header>
+        <div id="preset-list" class="preset-list"></div>
+      </section>
+    </div>
+  </main>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

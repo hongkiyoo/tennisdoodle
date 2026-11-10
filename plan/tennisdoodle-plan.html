@@ -1,0 +1,586 @@
+<title>TennisDoodle 기획서</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: 한 장짜리 기획서. 상단에 실제로 만져보는 iPhone 목업, 아래로 도면 → 인터랙션 → 포메이션 → 기술 → 로드맵 순 */
+:root{
+  --bg:#f2f5f3; --surface:#ffffff; --fg:#14201b; --muted:#56665e; --line:#d4ddd8;
+  --accent:#2c5c99; --accent-soft:#e3ebf6; --warn:#a2560c;
+  /* 코트 일러스트 색은 테마와 무관하게 고정 */
+  --court:#3f6fa8; --runoff:#4d7d5e; --court-line:#ffffff; --alley-dim:rgba(10,25,45,.38);
+  --team-a:#ff5a3c; --team-a-ink:#ffffff; --team-b:#f4f6f8; --team-b-ink:#1b2a44;
+  --ball:#dbf03f; --ball-seam:#8ea514; --phone:#111417;
+  --f-display:"Do Hyeon","IBM Plex Sans KR",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans KR",-apple-system,"Apple SD Gothic Neo",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1512; --surface:#161e1a; --fg:#e4ece8; --muted:#97a69f; --line:#27342e;
+  --accent:#86aee6; --accent-soft:#1c2a3d; --warn:#e5a35c; --phone:#000000; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1512; --surface:#161e1a; --fg:#e4ece8; --muted:#97a69f; --line:#27342e;
+  --accent:#86aee6; --accent-soft:#1c2a3d; --warn:#e5a35c; --phone:#000000; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15.5px;line-height:1.65;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 64px}
+.wrap{max-width:1060px;margin:0 auto;display:flex;flex-direction:column;gap:72px}
+h1,h2,h3{text-wrap:balance;margin:0;line-height:1.25}
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(40px,7vw,64px);letter-spacing:-.01em}
+h2{font-family:var(--f-display);font-weight:400;font-size:30px}
+h3{font-size:16px;font-weight:700}
+p{margin:0}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.lede{font-size:18px;max-width:34em}
+.muted{color:var(--muted)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+a{color:var(--accent)}
+section{display:flex;flex-direction:column;gap:24px}
+.sec-head{display:flex;flex-direction:column;gap:6px;max-width:44em}
+.v2{font-family:var(--f-mono);font-size:11px;padding:1px 7px;border-radius:99px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.mvp{font-family:var(--f-mono);font-size:11px;padding:1px 7px;border-radius:99px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+
+/* HERO */
+.hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:48px;align-items:start}
+.hero-text{display:flex;flex-direction:column;gap:22px;padding-top:12px;min-width:0}
+.points{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.points li{display:grid;grid-template-columns:110px 1fr;gap:12px;border-top:1px solid var(--line);padding-top:12px}
+.points b{font-weight:500;color:var(--muted);font-size:13.5px}
+.demo-col{display:flex;flex-direction:column;align-items:center;gap:12px}
+.readout{font-family:var(--f-mono);font-size:12.5px;color:var(--muted);min-height:20px;text-align:center;font-variant-numeric:tabular-nums}
+
+/* PHONE */
+.phone{width:min(340px,100%);aspect-ratio:402/874;border:10px solid var(--phone);border-radius:52px;background:var(--runoff);
+  overflow:hidden;display:flex;flex-direction:column;box-shadow:0 30px 60px -30px rgba(10,30,20,.45);position:relative;max-width:100%}
+.ph-status{height:40px;flex:none;display:flex;justify-content:center;align-items:center}
+.island{width:96px;height:26px;background:#000;border-radius:20px}
+.ph-top{flex:none;display:flex;justify-content:space-between;align-items:center;padding:2px 14px 6px}
+.ph-title{font-family:var(--f-display);color:#fff;font-size:17px}
+.seg{display:flex;background:rgba(0,0,0,.28);border-radius:10px;padding:2px}
+.seg button{all:unset;cursor:pointer;font-size:12.5px;color:#e8f0ea;padding:4px 11px;border-radius:8px;font-family:var(--f-body)}
+.seg button[aria-pressed="true"]{background:#fff;color:#16301f;font-weight:700}
+.seg button:focus-visible,.tool:focus-visible{outline:2px solid var(--ball);outline-offset:1px}
+.board{flex:1;min-height:0;width:100%;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;display:block}
+.ph-tools{flex:none;display:flex;justify-content:space-around;padding:6px 8px 4px;background:rgba(0,0,0,.22)}
+.tool{all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;color:#fff;font-size:10.5px;min-width:52px;padding:4px 0;border-radius:8px}
+.tool svg{width:22px;height:22px}
+.tool[aria-disabled="true"]{opacity:.42;cursor:default}
+.ph-home{height:16px;flex:none;display:flex;justify-content:center;align-items:center;background:rgba(0,0,0,.22)}
+.ph-home i{width:110px;height:4px;border-radius:3px;background:rgba(255,255,255,.7)}
+
+/* court svg classes */
+.runoff{fill:var(--runoff)} .surface{fill:var(--court)} .alley-dim{fill:var(--alley-dim)}
+.cl{stroke:var(--court-line);fill:none}
+.net{stroke:#f6f6f6;stroke-width:.09} .post{fill:#e8e8e8}
+.piece{cursor:grab}
+.piece .hit{fill:transparent}
+.piece .shadow{fill:rgba(0,0,0,.28)}
+.piece .body{transition:transform .12s ease;transform-box:fill-box;transform-origin:center}
+.piece.lift .body{transform:scale(1.35)}
+.piece.lift .shadow{transform:translate(.12px,.22px)}
+.tA circle.disc{fill:var(--team-a)} .tA text{fill:var(--team-a-ink)}
+.tB circle.disc{fill:var(--team-b);stroke:var(--team-b-ink);stroke-width:.05} .tB text{fill:var(--team-b-ink)}
+.piece text{font-family:var(--f-body);font-weight:700;font-size:.42px;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.ballc{fill:var(--ball);stroke:var(--ball-seam);stroke-width:.03}
+.seam{fill:none;stroke:var(--ball-seam);stroke-width:.035}
+@media (prefers-reduced-motion:reduce){.piece .body{transition:none}}
+
+/* panels */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:24px}
+.scroll-x{overflow-x:auto}
+.dim-svg{width:100%;min-width:640px;display:block}
+.dim-svg .dl{stroke:var(--fg);stroke-width:.05;fill:none}
+.dim-svg .dt{fill:var(--fg);font-family:var(--f-mono);font-size:.62px;text-anchor:middle}
+.dim-svg .dk{fill:var(--muted);font-family:var(--f-body);font-size:.55px}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.fact{background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:2px}
+.fact .k{font-size:13px;color:var(--muted)}
+.fact .v{font-family:var(--f-mono);font-size:18px;font-variant-numeric:tabular-nums}
+.fact .s{font-size:12.5px;color:var(--muted)}
+
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12.5px;font-weight:500;color:var(--muted);letter-spacing:.02em}
+td.mono{white-space:nowrap}
+
+/* formations */
+.forms{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px}
+.form-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.form-card svg{width:100%;aspect-ratio:13.2/26.8;max-width:100%;display:block;border-radius:8px}
+.form-card p{font-size:13.5px;color:var(--muted);flex:1}
+.apply{all:unset;cursor:pointer;font-size:13px;color:var(--accent);font-weight:500;align-self:flex-start;padding:4px 0}
+.apply:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+.list{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:8px}
+.list li{padding-left:2px}
+code{font-family:var(--f-mono);font-size:.88em;background:var(--accent-soft);padding:1px 5px;border-radius:5px}
+pre{margin:0;font-family:var(--f-mono);font-size:13px;line-height:1.55;background:var(--accent-soft);padding:16px;border-radius:10px;overflow-x:auto}
+
+.road{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.stage{border-top:3px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:10px}
+.stage.now{border-top-color:var(--accent)}
+.stage ul{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:5px;font-size:14.5px}
+
+.qs{display:flex;flex-direction:column;gap:0;border-top:1px solid var(--line)}
+.q{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:20px;padding:16px 0;border-bottom:1px solid var(--line)}
+.q .rec{color:var(--muted);font-size:14.5px}
+.q .rec b{color:var(--fg);font-weight:500}
+
+.refs{display:flex;flex-direction:column;gap:6px;font-size:14px}
+
+@media (max-width:760px){
+  .hero{grid-template-columns:1fr;gap:32px}
+  .points li{grid-template-columns:1fr;gap:2px}
+  .q{grid-template-columns:1fr;gap:6px}
+  .wrap{gap:56px}
+}
+</style>
+
+<div class="wrap">
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-text">
+    <span class="eyebrow">기획 초안 · 2026.11.10</span>
+    <h1>TennisDoodle</h1>
+    <p class="lede">파트너와 코트 그림을 같이 보며 작전을 짜는 iPhone용 웹앱. 화면 전체가 코트이고, 손가락으로 선수와 공을 끌어 옮기며 이야기합니다.</p>
+    <ul class="points">
+      <li><b>누가</b><span>복식 파트너, 레슨 코치와 학생, 동호회 친구</span></li>
+      <li><b>언제</b><span>경기 사이 휴식, 체인지오버 90초, 레슨 전후. 한 폰을 둘이 같이 보는 상황이 기본</span></li>
+      <li><b>핵심 동작</b><span>단식(2명)·복식(4명) 전환, 선수·공 드래그, 기본 포메이션 불러오기, 되돌리기</span></li>
+      <li><b>형태</b><span>Safari에서 열고 ‘홈 화면에 추가’하면 앱처럼 전체 화면으로 실행되는 PWA. 앱스토어 심사 없음</span></li>
+    </ul>
+    <p class="muted" style="font-size:14px">오른쪽 목업은 실제로 만질 수 있습니다. 선수나 공을 끌어 보세요. 휴대폰으로 이 페이지를 열면 두 손가락으로 두 선수를 동시에 옮길 수도 있습니다.</p>
+  </div>
+
+  <div class="demo-col">
+    <div class="phone" aria-label="TennisDoodle 메인 화면 목업">
+      <div class="ph-status"><div class="island"></div></div>
+      <div class="ph-top">
+        <span class="ph-title">TennisDoodle</span>
+        <div class="seg" role="group" aria-label="경기 방식">
+          <button id="m-singles" aria-pressed="false">단식</button>
+          <button id="m-doubles" aria-pressed="true">복식</button>
+        </div>
+      </div>
+      <svg class="board" id="board" viewBox="-6.6 -13.4 13.2 26.8" preserveAspectRatio="xMidYMid meet" aria-label="테니스 코트">
+        <g id="court"></g><g id="pieces"></g>
+      </svg>
+      <div class="ph-tools">
+        <button class="tool" id="t-undo" aria-label="되돌리기">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>되돌리기</button>
+        <button class="tool" id="t-reset" aria-label="포메이션 초기화">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M5 12h14M12 7v10"/></svg>포메이션</button>
+        <button class="tool" aria-disabled="true" aria-label="그리기 (v0.2)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20c4-1 6-5 9-9s5-5 7-5"/><path d="m16 4 4 2-2 4"/></svg>그리기</button>
+        <button class="tool" aria-disabled="true" aria-label="공유 (v0.2)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 12v8h14v-8"/></svg>공유</button>
+      </div>
+      <div class="ph-home"><i></i></div>
+    </div>
+    <div class="readout" id="readout">선수나 공을 끌어 보세요</div>
+  </div>
+</header>
+
+<!-- 1. 화면 구성 -->
+<section>
+  <div class="sec-head">
+    <span class="eyebrow">화면 구성</span>
+    <h2>한 화면, 세 층</h2>
+    <p>메뉴 화면 없이 앱을 열면 바로 코트입니다. 조작 요소는 위아래 얇은 띠에만 두고, 나머지는 전부 코트가 차지합니다.</p>
+  </div>
+  <div class="panel scroll-x">
+    <table>
+      <thead><tr><th>영역</th><th>들어가는 것</th><th>단계</th></tr></thead>
+      <tbody>
+        <tr><td>상단 바</td><td>앱 이름, 단식/복식 전환. 단식으로 바꾸면 양쪽 앨리가 어둡게 가려지고 선수는 2명만 남음</td><td><span class="mvp">MVP</span></td></tr>
+        <tr><td>코트 (보드)</td><td>ITF 규격 비율 그대로의 코트, 선수 토큰(우리 팀 주황 A1·A2 / 상대 흰색 B1·B2), 공 1개. 우리 팀은 항상 아래쪽</td><td><span class="mvp">MVP</span></td></tr>
+        <tr><td>하단 툴바</td><td>되돌리기, 포메이션 불러오기</td><td><span class="mvp">MVP</span></td></tr>
+        <tr><td></td><td>그리기(이동 경로·공 궤적 화살표), 공유 링크, 장면 저장</td><td><span class="v2">v0.2</span></td></tr>
+        <tr><td></td><td>코트 위/아래 뒤집기, 선수 이름·색 편집, 프레임 재생</td><td><span class="v2">v0.3</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 2. 코트 규격 -->
+<section>
+  <div class="sec-head">
+    <span class="eyebrow">코트 규격 · ITF Rules of Tennis</span>
+    <h2>코트는 실제 치수로 그린다</h2>
+    <p>좌표를 픽셀이 아니라 미터 단위로 잡고, 네트 중앙을 원점 (0, 0)으로 둡니다. SVG의 viewBox가 미터→화면 변환을 맡으므로 어떤 아이폰에서든 비율이 정확하고, 나중에 “네트에서 3 m” 같은 거리 표시도 그대로 쓸 수 있습니다.</p>
+  </div>
+  <div class="panel scroll-x">
+    <svg class="dim-svg" id="dim" viewBox="-15 -8.9 30 17.6" aria-label="테니스 코트 치수 도면"></svg>
+  </div>
+  <div class="facts">
+    <div class="fact"><span class="k">전체 길이</span><span class="v">23.77 m</span><span class="s">78 ft · 베이스라인 ↔ 베이스라인</span></div>
+    <div class="fact"><span class="k">복식 폭 / 단식 폭</span><span class="v">10.97 / 8.23 m</span><span class="s">36 ft / 27 ft · 앨리 한쪽 1.37 m</span></div>
+    <div class="fact"><span class="k">네트 ↔ 서비스라인</span><span class="v">6.40 m</span><span class="s">21 ft · 서비스라인 ↔ 베이스라인 5.49 m</span></div>
+    <div class="fact"><span class="k">네트 높이</span><span class="v">0.914 m</span><span class="s">중앙 3 ft · 포스트 1.07 m</span></div>
+    <div class="fact"><span class="k">권장 여유 공간</span><span class="v">6.40 / 3.66 m</span><span class="s">베이스라인 뒤 / 사이드라인 옆</span></div>
+    <div class="fact"><span class="k">공 지름</span><span class="v">6.54–6.86 cm</span><span class="s">앱에서는 보이도록 약 5배 확대</span></div>
+  </div>
+</section>
+
+<!-- 3. 아이폰 화면 맞추기 -->
+<section>
+  <div class="sec-head">
+    <span class="eyebrow">화면 비율</span>
+    <h2>세로 화면에 코트가 꼭 맞는다</h2>
+    <p>복식 코트에 앞뒤 1.5 m, 좌우 0.8 m 정도 여유를 두면 세로:가로가 약 2.0~2.2:1입니다. 최근 아이폰 세로 화면(약 2.17:1)과 거의 같아서 세로 고정이 가장 자연스럽습니다. 남는 공간은 코트 바깥 색으로 채우고, 비율은 <code>preserveAspectRatio="xMidYMid meet"</code>로 맞춥니다.</p>
+  </div>
+  <div class="panel scroll-x">
+    <table>
+      <thead><tr><th>기기</th><th>뷰포트 (pt)</th><th>세로:가로</th><th>코트 영역 (상·하단 바 제외)</th></tr></thead>
+      <tbody class="mono">
+        <tr><td>iPhone SE (3세대)</td><td>375 × 667</td><td>1.78</td><td>좌우에 여백 생김, 코트 약간 작아짐</td></tr>
+        <tr><td>iPhone 15 / 16</td><td>393 × 852</td><td>2.17</td><td>거의 꽉 참</td></tr>
+        <tr><td>iPhone 16 Pro</td><td>402 × 874</td><td>2.17</td><td>거의 꽉 참</td></tr>
+        <tr><td>iPhone 16 Pro Max</td><td>440 × 956</td><td>2.17</td><td>거의 꽉 참</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 4. 인터랙션 -->
+<section>
+  <div class="sec-head">
+    <span class="eyebrow">인터랙션 설계</span>
+    <h2>손가락 하나로 끝나는 조작</h2>
+    <p>코트 위에서 쓰는 앱이라 땀 묻은 손, 햇빛, 짧은 휴식 시간을 전제로 합니다. 정밀함보다 크게 잡히고 빨리 움직이는 쪽을 택합니다.</p>
+  </div>
+  <div class="panel scroll-x">
+    <table>
+      <thead><tr><th>제스처</th><th>동작</th><th>설계 메모</th></tr></thead>
+      <tbody>
+        <tr><td>토큰 누르고 끌기</td><td>선수/공 이동</td><td>보이는 원은 작아도 터치 영역은 지름 44pt 이상(Apple HIG). 누르는 순간 1.35배 커지고 그림자가 생겨 “집었다”는 느낌을 줌</td></tr>
+        <tr><td>두 손가락으로 각각 끌기</td><td>두 토큰 동시 이동</td><td>Pointer Events의 <code>pointerId</code>별로 따로 추적. 나와 파트너가 한 화면에서 동시에 움직일 수 있음</td></tr>
+        <tr><td>손가락이 토큰을 벗어남</td><td>계속 끌림</td><td><code>setPointerCapture</code>로 빠르게 움직여도 놓치지 않음</td></tr>
+        <tr><td>손가락에 가려짐</td><td>위치 확인</td><td>끄는 동안 “네트에서 3.2 m · 오른쪽 1.1 m” 말풍선을 손가락 위쪽에 표시</td></tr>
+        <tr><td>화면 밖으로 끌기</td><td>가장자리에서 멈춤</td><td>코트 바깥 여유 공간까지는 허용, 화면 밖은 막음</td></tr>
+        <tr><td>되돌리기 버튼</td><td>직전 상태로</td><td>드래그 한 번 = 기록 한 칸. 최대 50단계</td></tr>
+        <tr><td>빈 코트 끌기</td><td>MVP에선 아무 동작 없음</td><td><span class="v2">v0.2</span> 그리기 모드에서는 화살표 그리기. 확대/스크롤은 막음</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 5. 포메이션 -->
+<section>
+  <div class="sec-head">
+    <span class="eyebrow">기본 자료 · 복식 포메이션</span>
+    <h2>시작점이 되는 다섯 가지 배치</h2>
+    <p>작전 이야기는 대개 정해진 포메이션에서 출발합니다. 포메이션 버튼으로 바로 불러오고, 거기서 끌어 옮기며 변형합니다. 모두 우리 팀(주황, 아래)이 듀스 코트에서 서브하는 장면입니다. ‘데모에 적용’을 누르면 위 목업에 반영됩니다.</p>
+  </div>
+  <div class="forms" id="forms"></div>
+</section>
+
+<!-- 6. 기술 -->
+<section>
+  <div class="sec-head">
+    <span class="eyebrow">기술 설계</span>
+    <h2>가볍게, 오프라인으로</h2>
+    <p>코트장엔 와이파이가 없을 때가 많습니다. 서버 없이 정적 파일만으로 동작하고, 한 번 열면 오프라인에서도 켜지게 만듭니다.</p>
+  </div>
+  <div class="two">
+    <div class="panel" style="display:flex;flex-direction:column;gap:12px">
+      <h3>스택 제안</h3>
+      <ul class="list">
+        <li><b>Vite + TypeScript</b>, 프레임워크 없이 시작. 화면 요소가 적어 React까지는 필요 없음</li>
+        <li><b>SVG</b>로 코트와 토큰 렌더링. 객체가 5~6개뿐이라 Canvas보다 단순하고 어떤 해상도에서도 선명</li>
+        <li><b>Pointer Events</b>로 터치·마우스 통합 처리</li>
+        <li><b>PWA</b>: <code>manifest.json</code>(display: standalone), 서비스 워커로 오프라인 캐시, <code>apple-touch-icon</code> 180×180</li>
+        <li><b>저장</b>: localStorage (장면 목록) <span class="v2">v0.2</span></li>
+        <li><b>배포</b>: GitHub Pages 또는 Vercel (PWA는 HTTPS 필수)</li>
+      </ul>
+    </div>
+    <div class="panel" style="display:flex;flex-direction:column;gap:12px">
+      <h3>iOS Safari에서 챙길 것</h3>
+      <ul class="list">
+        <li>보드에 <code>touch-action: none</code> — 끄는 동안 페이지 스크롤·확대 방지. iOS는 <code>user-scalable=no</code>를 무시하므로 이게 핵심</li>
+        <li><code>overscroll-behavior: none</code> + 화면 고정 레이아웃 — 고무줄 튕김 방지</li>
+        <li><code>-webkit-touch-callout: none</code>, <code>user-select: none</code> — 길게 눌렀을 때 메뉴·텍스트 선택 방지</li>
+        <li><code>viewport-fit=cover</code> + <code>env(safe-area-inset-*)</code> — 다이내믹 아일랜드·홈 인디케이터 피하기</li>
+        <li>진동(Vibration API) 미지원 → 확대·그림자 같은 시각 피드백으로 대신</li>
+        <li>Screen Wake Lock API — 이야기하는 동안 화면 꺼짐 방지</li>
+      </ul>
+    </div>
+  </div>
+  <div class="panel" style="display:flex;flex-direction:column;gap:12px">
+    <h3>데이터 모델 (장면 하나)</h3>
+    <p class="muted" style="font-size:14px">좌표는 미터, 원점은 네트 중앙. 아래쪽(+y)이 우리 팀. 이 구조를 그대로 JSON으로 저장하고, 압축해서 공유 링크의 <code>#</code> 뒤에 넣으면 서버 없이 파트너에게 보낼 수 있습니다.</p>
+<pre>type Team = "A" | "B";            // A = 우리 팀(아래), B = 상대(위)
+
+interface Scene {
+  mode: "singles" | "doubles";
+  players: { id: "A1" | "A2" | "B1" | "B2"; team: Team;
+             x: number; y: number; name?: string }[];   // 단위: m
+  ball: { x: number; y: number };
+  drawings?: { kind: "move" | "shot"; points: [number, number][] }[];  // v0.2
+}
+
+// 예: 기본 서브 포메이션
+{ mode: "doubles",
+  players: [ { id:"A1", team:"A", x: 1.0, y: 12.3 }, { id:"A2", team:"A", x:-2.6, y: 3.0 },
+             { id:"B1", team:"B", x:-3.6, y:-12.2 }, { id:"B2", team:"B", x: 2.2, y:-6.6 } ],
+  ball: { x: 1.4, y: 12.0 } }</pre>
+  </div>
+</section>
+
+<!-- 7. 로드맵 -->
+<section>
+  <div class="sec-head">
+    <span class="eyebrow">단계</span>
+    <h2>먼저 “끌어서 보여주기”만 완성</h2>
+  </div>
+  <div class="road">
+    <div class="stage now">
+      <h3>v0.1 · MVP</h3>
+      <ul>
+        <li>규격 코트 렌더링 (세로 고정)</li>
+        <li>단식/복식 전환</li>
+        <li>선수·공 드래그, 멀티터치</li>
+        <li>포메이션 5종 불러오기</li>
+        <li>되돌리기</li>
+        <li>홈 화면 추가 + 오프라인</li>
+      </ul>
+    </div>
+    <div class="stage">
+      <h3>v0.2 · 그리고 나누기</h3>
+      <ul>
+        <li>그리기 모드: 이동 경로(점선), 공 궤적(실선 화살표)</li>
+        <li>장면 저장/불러오기</li>
+        <li>공유 링크 (카톡·메시지로 전송)</li>
+        <li>선수 이름·색 편집</li>
+      </ul>
+    </div>
+    <div class="stage">
+      <h3>v0.3 · 움직이는 작전</h3>
+      <ul>
+        <li>프레임 1→2→3 스텝 저장 후 재생</li>
+        <li>코트 뒤집기 (상대 시점)</li>
+        <li>이미지로 내보내기</li>
+        <li>선택: 두 폰 실시간 동기화 (이때 서버 필요)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 8. 결정할 것 -->
+<section>
+  <div class="sec-head">
+    <span class="eyebrow">확인이 필요한 것</span>
+    <h2>만들기 전에 정할 다섯 가지</h2>
+  </div>
+  <div class="qs">
+    <div class="q"><b>화면 방향</b><span class="rec"><b>제안: 세로 고정.</b> 코트 비율이 아이폰과 맞고, 한 손으로 들고 보여주기 좋음. 가로는 코트가 작아짐</span></div>
+    <div class="q"><b>우리 팀 위치</b><span class="rec"><b>제안: 항상 아래.</b> 내 시점과 화면이 일치. 상대 시점이 필요하면 v0.3의 뒤집기 버튼으로</span></div>
+    <div class="q"><b>그리기(화살표)를 MVP에 넣을지</b><span class="rec"><b>제안: v0.2로.</b> 드래그만으로도 위치 이야기는 충분히 되고, 그리기는 모드 전환·지우기 UI가 따라와서 범위가 커짐</span></div>
+    <div class="q"><b>파트너와 공유 방식</b><span class="rec"><b>제안: 링크 공유부터.</b> 서버 없이 장면을 URL에 담아 보냄. 실시간 동기화는 실제로 필요해지면</span></div>
+    <div class="q"><b>선수 표기</b><span class="rec"><b>제안: 색 + 짧은 라벨(A1/A2/B1/B2)로 시작.</b> 이름 입력은 v0.2. 오른손/왼손 표시가 필요한지도 의견 주세요</span></div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="eyebrow">참고 자료</span></div>
+  <div class="refs">
+    <a href="https://www.itftennis.com/en/about-us/governance/rules-and-regulations/" target="_blank" rel="noopener">ITF Rules of Tennis — 코트 규격(Rule 1), 공 규격</a>
+    <a href="https://developer.apple.com/design/human-interface-guidelines/accessibility" target="_blank" rel="noopener">Apple Human Interface Guidelines — 최소 터치 영역 44×44pt</a>
+    <a href="https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events" target="_blank" rel="noopener">MDN — Pointer Events, setPointerCapture</a>
+    <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/touch-action" target="_blank" rel="noopener">MDN — touch-action</a>
+    <a href="https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps" target="_blank" rel="noopener">MDN — Progressive Web Apps</a>
+  </div>
+</section>
+
+</div>
+
+<script>
+(() => {
+const C = { L: 11.885, DW: 5.485, SW: 4.115, SV: 6.40, LW: 0.05, POST: 6.4 };
+const VB = { x0: -6.6, y0: -13.4, w: 13.2, h: 26.8 };
+
+function courtMarkup(mode) {
+  const lw = C.LW;
+  let s = `<rect class="runoff" x="-20" y="-30" width="40" height="60"/>
+  <rect class="surface" x="${-C.DW}" y="${-C.L}" width="${2*C.DW}" height="${2*C.L}"/>`;
+  if (mode === 'singles') {
+    s += `<rect class="alley-dim" x="${-C.DW}" y="${-C.L}" width="${C.DW-C.SW}" height="${2*C.L}"/>
+          <rect class="alley-dim" x="${C.SW}" y="${-C.L}" width="${C.DW-C.SW}" height="${2*C.L}"/>`;
+  }
+  s += `<g class="cl" stroke-width="${lw}">
+    <rect x="${-C.DW}" y="${-C.L}" width="${2*C.DW}" height="${2*C.L}"/>
+    <line x1="${-C.SW}" y1="${-C.L}" x2="${-C.SW}" y2="${C.L}"/>
+    <line x1="${C.SW}" y1="${-C.L}" x2="${C.SW}" y2="${C.L}"/>
+    <line x1="${-C.SW}" y1="${-C.SV}" x2="${C.SW}" y2="${-C.SV}"/>
+    <line x1="${-C.SW}" y1="${C.SV}" x2="${C.SW}" y2="${C.SV}"/>
+    <line x1="0" y1="${-C.SV}" x2="0" y2="${C.SV}"/>
+    <line x1="0" y1="${-C.L}" x2="0" y2="${-C.L+0.15}"/>
+    <line x1="0" y1="${C.L}" x2="0" y2="${C.L-0.15}"/>
+  </g>
+  <line class="net" x1="${-C.POST}" y1="0" x2="${C.POST}" y2="0"/>
+  <circle class="post" cx="${-C.POST}" cy="0" r="0.1"/><circle class="post" cx="${C.POST}" cy="0" r="0.1"/>`;
+  return s;
+}
+
+function pieceMarkup(p, interactive) {
+  const hit = interactive ? `<circle class="hit" r="0.95"/>` : '';
+  return `<g class="piece t${p.team}" data-id="${p.id}" transform="translate(${p.x} ${p.y})">
+    ${hit}<g class="body"><circle class="shadow" cx="0.06" cy="0.1" r="0.44"/><circle class="disc" r="0.44"/><text>${p.id}</text></g></g>`;
+}
+function ballMarkup(b, interactive) {
+  const hit = interactive ? `<circle class="hit" r="0.75"/>` : '';
+  return `<g class="piece ball" data-id="ball" transform="translate(${b.x} ${b.y})">
+    ${hit}<g class="body"><circle class="shadow" cx="0.05" cy="0.08" r="0.2"/><circle class="ballc" r="0.2"/>
+    <path class="seam" d="M-0.14,-0.14 Q0,0 -0.14,0.14 M0.14,-0.14 Q0,0 0.14,0.14"/></g></g>`;
+}
+
+const FORMS = [
+  { key:'standard', name:'기본 (원업 원백)', desc:'서버는 베이스라인, 파트너는 애드 코트 네트 앞. 가장 흔한 출발점.',
+    A1:[1.0,12.3], A2:[-2.6,3.0], B1:[-3.6,-12.2], B2:[2.2,-6.6], ball:[1.4,12.0] },
+  { key:'bothback', name:'투백', desc:'둘 다 베이스라인. 리턴이 강한 상대, 로브 대비용.',
+    A1:[1.0,12.3], A2:[-3.0,11.9], B1:[-3.6,-12.2], B2:[2.2,-6.6], ball:[1.4,12.0] },
+  { key:'bothup', name:'투업 (네트 점령)', desc:'서브 앤 발리 후 둘 다 네트로. 발리 대결 장면.',
+    A1:[1.9,4.2], A2:[-2.2,3.4], B1:[-3.4,-11.6], B2:[2.2,-6.6], ball:[0.6,-9.5] },
+  { key:'iform', name:'I 포메이션', desc:'파트너가 센터라인 위에 낮게 서고, 서브 후 좌우로 움직여 리턴 방향을 흔듦.',
+    A1:[0.3,12.3], A2:[0.0,2.4], B1:[-3.6,-12.2], B2:[2.2,-6.6], ball:[0.7,12.0] },
+  { key:'aussie', name:'오스트레일리안', desc:'서버와 파트너가 같은 쪽(듀스)에 섬. 크로스 리턴을 봉쇄.',
+    A1:[0.6,12.3], A2:[2.6,3.0], B1:[-3.6,-12.2], B2:[2.2,-6.6], ball:[1.0,12.0] },
+];
+const SINGLES = { A1:[0.8,12.3], B1:[-2.6,-12.2], ball:[1.2,12.0] };
+
+function sceneFrom(form, mode) {
+  if (mode === 'singles') {
+    return { mode, players:[{id:'A1',team:'A',x:SINGLES.A1[0],y:SINGLES.A1[1]},{id:'B1',team:'B',x:SINGLES.B1[0],y:SINGLES.B1[1]}],
+             ball:{x:SINGLES.ball[0],y:SINGLES.ball[1]} };
+  }
+  const f = form;
+  return { mode, players:['A1','A2','B1','B2'].map(id=>({id,team:id[0],x:f[id][0],y:f[id][1]})),
+           ball:{x:f.ball[0],y:f.ball[1]} };
+}
+
+// ---------- demo ----------
+const board = document.getElementById('board');
+const gCourt = document.getElementById('court');
+const gPieces = document.getElementById('pieces');
+const readout = document.getElementById('readout');
+let formIdx = 0;
+let state = sceneFrom(FORMS[0], 'doubles');
+const history = [];
+
+function render() {
+  gCourt.innerHTML = courtMarkup(state.mode);
+  gPieces.innerHTML = state.players.map(p => pieceMarkup(p, true)).join('') + ballMarkup(state.ball, true);
+  document.getElementById('m-singles').setAttribute('aria-pressed', state.mode === 'singles');
+  document.getElementById('m-doubles').setAttribute('aria-pressed', state.mode === 'doubles');
+}
+function getObj(id) { return id === 'ball' ? state.ball : state.players.find(p => p.id === id); }
+function snapshot() { history.push(JSON.stringify(state)); if (history.length > 50) history.shift(); }
+function fmt(o, id) {
+  const side = Math.abs(o.y) < 0.05 ? '네트 위' : (o.y > 0 ? '우리 쪽' : '상대 쪽');
+  const lr = Math.abs(o.x) < 0.05 ? '중앙' : (o.x > 0 ? '오른쪽 ' : '왼쪽 ') + Math.abs(o.x).toFixed(1) + ' m';
+  const name = id === 'ball' ? '공' : id;
+  return `${name} · ${side}, 네트에서 ${Math.abs(o.y).toFixed(1)} m · ${lr}`;
+}
+function toSvg(e) {
+  const pt = board.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+  return pt.matrixTransform(board.getScreenCTM().inverse());
+}
+const drags = new Map();
+board.addEventListener('pointerdown', e => {
+  const g = e.target.closest('.piece'); if (!g) return;
+  e.preventDefault();
+  const id = g.dataset.id, o = getObj(id), p = toSvg(e);
+  snapshot();
+  drags.set(e.pointerId, { id, g, dx: p.x - o.x, dy: p.y - o.y });
+  try { board.setPointerCapture(e.pointerId); } catch (_) {}
+  g.classList.add('lift'); gPieces.appendChild(g);
+  readout.textContent = fmt(o, id);
+});
+board.addEventListener('pointermove', e => {
+  const d = drags.get(e.pointerId); if (!d) return;
+  e.preventDefault();
+  const p = toSvg(e), o = getObj(d.id);
+  o.x = Math.min(VB.x0 + VB.w - 0.3, Math.max(VB.x0 + 0.3, +(p.x - d.dx).toFixed(2)));
+  o.y = Math.min(VB.y0 + VB.h - 0.3, Math.max(VB.y0 + 0.3, +(p.y - d.dy).toFixed(2)));
+  d.g.setAttribute('transform', `translate(${o.x} ${o.y})`);
+  readout.textContent = fmt(o, d.id);
+});
+const end = e => { const d = drags.get(e.pointerId); if (!d) return; d.g.classList.remove('lift'); drags.delete(e.pointerId); };
+board.addEventListener('pointerup', end);
+board.addEventListener('pointercancel', end);
+
+function setMode(m) { if (state.mode === m) return; snapshot(); state = sceneFrom(FORMS[formIdx], m); render(); readout.textContent = m === 'singles' ? '단식: 앨리가 가려지고 2명만 표시' : '복식: 4명 표시'; }
+document.getElementById('m-singles').onclick = () => setMode('singles');
+document.getElementById('m-doubles').onclick = () => setMode('doubles');
+document.getElementById('t-undo').onclick = () => {
+  if (!history.length) { readout.textContent = '더 되돌릴 기록이 없습니다'; return; }
+  state = JSON.parse(history.pop()); render(); readout.textContent = '되돌렸습니다';
+};
+document.getElementById('t-reset').onclick = () => {
+  snapshot();
+  if (state.mode === 'doubles') formIdx = (formIdx + 1) % FORMS.length;
+  state = sceneFrom(FORMS[formIdx], state.mode); render();
+  readout.textContent = state.mode === 'doubles' ? `포메이션: ${FORMS[formIdx].name}` : '단식 기본 배치';
+};
+render();
+
+// ---------- formation cards ----------
+const forms = document.getElementById('forms');
+forms.innerHTML = FORMS.map((f, i) => {
+  const sc = sceneFrom(f, 'doubles');
+  return `<div class="form-card">
+    <svg viewBox="${VB.x0} ${VB.y0} ${VB.w} ${VB.h}" aria-label="${f.name} 배치도">${courtMarkup('doubles')}
+      ${sc.players.map(p => pieceMarkup(p, false)).join('')}${ballMarkup(sc.ball, false)}</svg>
+    <h3>${f.name}</h3><p>${f.desc}</p>
+    <button class="apply" data-i="${i}">데모에 적용 ↑</button></div>`;
+}).join('');
+forms.addEventListener('click', e => {
+  const b = e.target.closest('.apply'); if (!b) return;
+  snapshot(); formIdx = +b.dataset.i; state = sceneFrom(FORMS[formIdx], 'doubles'); render();
+  readout.textContent = `포메이션: ${FORMS[formIdx].name}`;
+  document.querySelector('.phone').scrollIntoView({ behavior: 'smooth', block: 'center' });
+});
+
+// ---------- dimension drawing (landscape) ----------
+const L = C.L, DW = C.DW, SW = C.SW, SV = C.SV;
+function dim(x1, y1, x2, y2, label, rot) {
+  const t = 0.25, vert = x1 === x2;
+  const ticks = vert
+    ? `<line class="dl" x1="${x1-t}" y1="${y1}" x2="${x1+t}" y2="${y1}"/><line class="dl" x1="${x2-t}" y1="${y2}" x2="${x2+t}" y2="${y2}"/>`
+    : `<line class="dl" x1="${x1}" y1="${y1-t}" x2="${x1}" y2="${y1+t}"/><line class="dl" x1="${x2}" y1="${y2-t}" x2="${x2}" y2="${y2+t}"/>`;
+  const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+  const txt = vert
+    ? `<text class="dt" transform="translate(${mx + (rot > 0 ? 0.55 : -0.55)} ${my}) rotate(${rot})">${label}</text>`
+    : `<text class="dt" x="${mx}" y="${my - 0.3}">${label}</text>`;
+  return `<line class="dl" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>${ticks}${txt}`;
+}
+document.getElementById('dim').innerHTML = `
+  <rect class="runoff" x="-14.2" y="-7.2" width="28.4" height="14.4" rx="0.3"/>
+  <rect class="surface" x="${-L}" y="${-DW}" width="${2*L}" height="${2*DW}"/>
+  <g class="cl" stroke-width="0.06">
+    <rect x="${-L}" y="${-DW}" width="${2*L}" height="${2*DW}"/>
+    <line x1="${-L}" y1="${-SW}" x2="${L}" y2="${-SW}"/><line x1="${-L}" y1="${SW}" x2="${L}" y2="${SW}"/>
+    <line x1="${-SV}" y1="${-SW}" x2="${-SV}" y2="${SW}"/><line x1="${SV}" y1="${-SW}" x2="${SV}" y2="${SW}"/>
+    <line x1="${-SV}" y1="0" x2="${SV}" y2="0"/>
+    <line x1="${-L}" y1="0" x2="${-L+0.15}" y2="0"/><line x1="${L}" y1="0" x2="${L-0.15}" y2="0"/>
+  </g>
+  <line class="net" x1="0" y1="-6.4" x2="0" y2="6.4"/>
+  <circle class="post" cx="0" cy="-6.4" r="0.12"/><circle class="post" cx="0" cy="6.4" r="0.12"/>
+  <text x="-9.6" y="${-SW - 0.48}" style="fill:#fff;font-size:.5px;font-family:var(--f-body)">앨리 1.37 m</text>
+  <text x="-3.2" y="2.2" style="fill:#fff;font-size:.5px;font-family:var(--f-body);text-anchor:middle">서비스 박스</text>
+  <text x="0.25" y="-6.0" style="fill:#fff;font-size:.45px;font-family:var(--f-body)">네트 0.914 m (중앙)</text>
+  ${dim(-L, 8.1, L, 8.1, '23.77 m (78 ft) 전체 길이')}
+  ${dim(0, -7.75, SV, -7.75, '6.40 m')}
+  ${dim(SV, -7.75, L, -7.75, '5.49 m')}
+  ${dim(-SV, -7.75, 0, -7.75, '6.40 m')}
+  ${dim(13.4, -DW, 13.4, DW, '10.97 m 복식', 90)}
+  ${dim(-13.4, -SW, -13.4, SW, '8.23 m 단식', -90)}
+  <text x="${SV + 0.25}" y="${SW - 0.35}" style="fill:#fff;font-size:.45px;font-family:var(--f-body)">서비스라인</text>
+  <text x="${L - 0.25}" y="${SW + 0.85}" style="fill:#fff;font-size:.45px;font-family:var(--f-body);text-anchor:end">베이스라인</text>
+`;
+})();
+</script>
