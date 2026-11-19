@@ -17,7 +17,7 @@ const gStrokes = $<SVGGElement>('#strokes');
 const gLive = $<SVGGElement>('#live');
 const gPieces = $<SVGGElement>('#pieces');
 const toolbar = $<HTMLElement>('.toolbar');
-const safeTop = $<HTMLElement>('#safe-top');
+const topbar = $<HTMLElement>('.topbar');
 const barMain = $<HTMLElement>('#bar-main');
 const barDraw = $<HTMLElement>('#bar-draw');
 const undoButtons = [$<HTMLButtonElement>('#btn-undo'), $<HTMLButtonElement>('#btn-undo2')];
@@ -82,7 +82,7 @@ let bounds = { xmin: -HALF_W, xmax: HALF_W, ymin: -HALF_H, ymax: HALF_H };
 function layout() {
   const W = board.clientWidth, H = board.clientHeight;
   if (!W || !H) return;
-  const top = safeTop.offsetHeight;
+  const top = topbar.offsetHeight;
   const bottom = toolbar.offsetHeight;
   const freeH = Math.max(1, H - top - bottom);
   const s = Math.min((W - 12) / (2 * HALF_W), freeH / (2 * HALF_H)); // px per metre
@@ -97,6 +97,25 @@ function layout() {
 }
 new ResizeObserver(layout).observe(board);
 new ResizeObserver(layout).observe(toolbar);
+new ResizeObserver(layout).observe(topbar);
+
+// iOS can leave the page scrolled up after the keyboard closes (most often in a
+// home-screen app). Put it back and refit whenever the viewport settles.
+function resetViewport() {
+  const el = document.activeElement;
+  if (el && el.tagName === 'INPUT') return; // keyboard still open
+  if (window.scrollX || window.scrollY) window.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+  layout();
+}
+document.addEventListener('focusout', () => {
+  setTimeout(resetViewport, 60);
+  setTimeout(resetViewport, 400); // after the keyboard animation
+});
+window.visualViewport?.addEventListener('resize', resetViewport);
+window.addEventListener('orientationchange', () => setTimeout(resetViewport, 300));
+window.addEventListener('pageshow', resetViewport);
 
 // ---------- render ----------
 let renderedMode: Mode | null = null;
@@ -108,6 +127,8 @@ function render() {
   }
   gStrokes.innerHTML = (scene.strokes ?? []).map(strokeMarkup).join('');
   gPieces.innerHTML = scene.players.map(p => playerMarkup(p, true)).join('') + ballMarkup(scene.ball, true);
+  $('#mode-singles').setAttribute('aria-pressed', String(scene.mode === 'singles'));
+  $('#mode-doubles').setAttribute('aria-pressed', String(scene.mode === 'doubles'));
 }
 
 // ---------- pointer handling: one entry per finger ----------
@@ -314,8 +335,6 @@ const saveForm = $<HTMLFormElement>('#save-form');
 const saveName = $<HTMLInputElement>('#save-name');
 
 function renderSheet() {
-  $('#mode-singles').setAttribute('aria-pressed', String(scene.mode === 'singles'));
-  $('#mode-doubles').setAttribute('aria-pressed', String(scene.mode === 'doubles'));
   $('#preset-title').textContent = scene.mode === 'doubles' ? '복식 포메이션' : '단식 배치';
   presetList.innerHTML = presetsFor(scene.mode).map(p => `
     <button class="preset" type="button" data-key="${p.key}" aria-current="${p.key === lastPresetKey}">
@@ -353,7 +372,7 @@ function setMode(mode: Mode) {
   if (scene.mode === mode) return;
   lastPresetKey = null;
   setScene(withNames(defaultScene(mode), scene));
-  renderSheet();
+  toast(mode === 'doubles' ? '복식: 4명' : '단식: 2명, 앨리는 어둡게 표시');
 }
 $('#mode-singles').addEventListener('click', () => setMode('singles'));
 $('#mode-doubles').addEventListener('click', () => setMode('doubles'));
@@ -466,7 +485,39 @@ async function keepAwake() {
     wakeLock.addEventListener('release', () => { wakeLock = null; });
   } catch { /* not allowed (e.g. low power mode) — fine */ }
 }
-document.addEventListener('visibilitychange', () => { void keepAwake(); });
+document.addEventListener('visibilitychange', () => { void keepAwake(); resetViewport(); });
+
+// Diagnostics: open with ?debug, or tap the title three times (home-screen app has no address bar).
+let debugOn = false;
+function startDebug() {
+  if (debugOn) return;
+  debugOn = true;
+  const box = document.createElement('pre');
+  box.style.cssText = 'position:fixed;left:8px;top:120px;z-index:50;margin:0;padding:8px;background:rgba(0,0,0,.8);color:#fff;font:12px/1.4 ui-monospace,monospace;pointer-events:none;white-space:pre';
+  document.body.appendChild(box);
+  const show = () => {
+    const vv = window.visualViewport;
+    box.textContent = [
+      `standalone ${matchMedia('(display-mode: standalone)').matches}`,
+      `screen ${screen.width}x${screen.height}`,
+      `inner ${innerWidth}x${innerHeight}`,
+      `client ${document.documentElement.clientWidth}x${document.documentElement.clientHeight}`,
+      `visual ${vv ? `${Math.round(vv.width)}x${Math.round(vv.height)} top ${Math.round(vv.offsetTop)}` : '-'}`,
+      `scrollY ${scrollY}`,
+      `app ${board.clientWidth}x${board.clientHeight}`,
+      `topbar ${topbar.offsetHeight} toolbar ${toolbar.offsetHeight}`,
+    ].join('\n');
+  };
+  show();
+  setInterval(show, 1000);
+}
+if (new URLSearchParams(location.search).has('debug')) startDebug();
+let titleTaps: number[] = [];
+$('.app-title').addEventListener('click', () => {
+  const now = performance.now();
+  titleTaps = [...titleTaps.filter(t => now - t < 800), now];
+  if (titleTaps.length >= 3) startDebug();
+});
 
 // ---------- offline support ----------
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {

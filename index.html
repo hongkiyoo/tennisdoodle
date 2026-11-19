@@ -8,7 +8,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="TennisDoodle">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./apple-touch-icon.png">
@@ -21,7 +21,13 @@
       <g id="live"></g>
       <g id="pieces"></g>
     </svg>
-    <div id="safe-top" aria-hidden="true"></div>
+    <header class="topbar">
+      <span class="app-title">TennisDoodle</span>
+      <div class="seg" role="group" aria-label="경기 방식">
+        <button id="mode-singles" type="button">단식</button>
+        <button id="mode-doubles" type="button">복식</button>
+      </div>
+    </header>
 
     <nav class="toolbar" aria-label="도구">
       <!-- normal mode -->
@@ -72,14 +78,6 @@
           <button class="text-btn" type="button" data-close>닫기</button>
         </header>
         <div class="sheet-body">
-          <div class="row">
-            <h3>경기 방식</h3>
-            <div class="seg light" role="group" aria-label="경기 방식">
-              <button id="mode-singles" type="button">단식</button>
-              <button id="mode-doubles" type="button">복식</button>
-            </div>
-          </div>
-
           <h3 id="preset-title">포메이션</h3>
           <div id="preset-list" class="preset-list"></div>
 

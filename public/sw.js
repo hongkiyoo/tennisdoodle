@@ -1,5 +1,5 @@
 // Offline cache: serve from cache first, refresh the cache in the background.
-const CACHE = 'tennisdoodle-v2';
+const CACHE = 'tennisdoodle-v3';
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(c => c.addAll(['./', './index.html', './manifest.webmanifest'])));
