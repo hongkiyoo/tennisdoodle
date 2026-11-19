@@ -76,28 +76,23 @@ function toast(msg: string, ms = 2200) {
   toastTimer = window.setTimeout(() => { toastEl.hidden = true; }, ms);
 }
 
-// ---------- layout: fit the court between the status bar and the toolbar ----------
-let bounds = { xmin: -HALF_W, xmax: HALF_W, ymin: -HALF_H, ymax: HALF_H };
+// ---------- layout ----------
+// The board is the flex area between the top bar and the toolbar (see style.css), and
+// the browser fits this fixed viewBox into it ("meet"). No JS measuring, so a stale or
+// wrong viewport size from iOS on relaunch can no longer push the court under the bars.
+board.setAttribute('viewBox', `${-HALF_W} ${-HALF_H} ${2 * HALF_W} ${2 * HALF_H}`);
 
-function layout() {
-  const W = board.clientWidth, H = board.clientHeight;
-  if (!W || !H) return;
-  const top = topbar.offsetHeight;
-  const bottom = toolbar.offsetHeight;
-  const freeH = Math.max(1, H - top - bottom);
-  const s = Math.min((W - 12) / (2 * HALF_W), freeH / (2 * HALF_H)); // px per metre
-  const x0 = -W / 2 / s;
-  const y0 = -(top + freeH / 2) / s;
-  board.setAttribute('viewBox', `${x0} ${y0} ${W / s} ${H / s}`);
-  const pad = 0.5;
-  bounds = {
-    xmin: x0 + pad, xmax: x0 + W / s - pad,
-    ymin: y0 + top / s + pad, ymax: y0 + (H - bottom) / s - pad,
-  };
+/** Visible area of the board in metres (wider or taller than the viewBox when letterboxed). */
+let bounds = { xmin: -HALF_W, xmax: HALF_W, ymin: -HALF_H, ymax: HALF_H };
+function measureBounds() {
+  const m = board.getScreenCTM();
+  if (!m) return;
+  const r = board.getBoundingClientRect(), inv = m.inverse();
+  const a = new DOMPoint(r.left, r.top).matrixTransform(inv);
+  const b = new DOMPoint(r.right, r.bottom).matrixTransform(inv);
+  const pad = 0.45;
+  bounds = { xmin: a.x + pad, xmax: b.x - pad, ymin: a.y + pad, ymax: b.y - pad };
 }
-new ResizeObserver(layout).observe(board);
-new ResizeObserver(layout).observe(toolbar);
-new ResizeObserver(layout).observe(topbar);
 
 // iOS can leave the page scrolled up after the keyboard closes (most often in a
 // home-screen app). Put it back and refit whenever the viewport settles.
@@ -107,7 +102,6 @@ function resetViewport() {
   if (window.scrollX || window.scrollY) window.scrollTo(0, 0);
   document.documentElement.scrollTop = 0;
   document.body.scrollTop = 0;
-  layout();
 }
 document.addEventListener('focusout', () => {
   setTimeout(resetViewport, 60);
@@ -179,6 +173,7 @@ function renderLive() {
 
 board.addEventListener('pointerdown', e => {
   void keepAwake();
+  measureBounds();
   if (drawMode) {
     e.preventDefault();
     const p = toBoard(e);
@@ -528,5 +523,4 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
 
 render();
 updateUndo();
-layout();
 openFromHash();
